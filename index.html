@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Property Collection | Exclusive Real Estate Listings</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="banner">
+        <div class="banner-content">
+            <h1>Find Your Dream Home</h1>
+            <p>Discover the perfect property in your desired location</p>
+            <a href="#listings" class="cta-button">Explore Our Collection</a>
+        </div>
+    </div>
+
+  <!-- Replace your current filters section with this updated version -->
+<div class="filters">
+    <!-- Filter toggle header will be added by JS on mobile -->
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="name"><i class="fas fa-search"></i> Name</label>
+            <input type="text" id="name" placeholder="Search by name">
+        </div>
+        <div class="filter-group">
+            <label for="meters"><i class="fas fa-ruler-combined"></i> Meters (min)</label>
+            <input type="number" id="meters" placeholder="Min m²">
+        </div>
+        <div class="filter-group">
+            <label for="varas"><i class="fas fa-vector-square"></i> Varas (min)</label>
+            <input type="number" id="varas" placeholder="Min v²">
+        </div>
+        <div class="filter-group">
+            <label for="bedrooms"><i class="fas fa-bed"></i> Bedrooms</label>
+            <select id="bedrooms">
+                <option value="">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="bathrooms"><i class="fas fa-bath"></i> Bathrooms</label>
+            <select id="bathrooms">
+                <option value="">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="parking"><i class="fas fa-car"></i> Parking</label>
+            <select id="parking">
+                <option value="">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="completionDate"><i class="fas fa-calendar-alt"></i> Completion Date</label>
+            <select id="completionDate">
+                <option value="">Any</option>
+                <option value="Q1">Q1</option>
+                <option value="Q2">Q2</option>
+                <option value="Q3">Q3</option>
+                <option value="Q4">Q4</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="price"><i class="fas fa-tag"></i> Price Range</label>
+            <select id="price">
+                <option value="">Any Price</option>
+                <option value="0-250000">Under $250,000</option>
+                <option value="250000-500000">$250,000 - $500,000</option>
+                <option value="500000-750000">$500,000 - $750,000</option>
+                <option value="750000+">$750,000+</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+    <div id="listings" class="listings">
+        <!-- Property listings will be dynamically generated here -->
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="modal-details"></div>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    <div class="services">
+        <div class="section-heading">
+            <h2>Our Bespoke Services</h2>
+            <p>Experience unparalleled service tailored to meet the needs of our discerning clientele</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h3 class="service-title">Exclusive Properties</h3>
+                <p class="service-description">Access to an unrivaled portfolio of the world's most prestigious properties, many available only through our private network.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h3 class="service-title">Personal Concierge</h3>
+                <p class="service-description">Our dedicated team offers personalized assistance throughout your property journey, from initial inquiry to final acquisition.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                <h3 class="service-title">Private Viewings</h3>
+                <p class="service-description">Experience your potential home in person with our curated private viewing service, including transportation arrangements.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-paint-roller"></i>
+                </div>
+                <h3 class="service-title">Interior Design</h3>
+                <p class="service-description">Collaborate with world-renowned interior designers to transform your new property into a personalized masterpiece.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <div class="section-heading">
+            <h2>Frequently Asked Questions</h2>
+            <p>Find answers to the most common inquiries about our luxury properties and services</p>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                    How do I schedule a property viewing? <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Our private viewings can be arranged through your dedicated property consultant. Simply select the properties you're interested in, and we'll coordinate a personalized viewing schedule that accommodates your timeline, including transportation arrangements if needed. For international clients, we offer virtual tour options with our high-definition technology.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    What services are included when purchasing a property? <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Our comprehensive acquisition service includes property legal verification, transaction management, tax planning consultation, and post-purchase support. For international buyers, we provide additional services including visa assistance, banking introductions, and relocation support. Each client is assigned a dedicated relationship manager who oversees the entire process.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Do you offer investment advisory services? <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes, our investment advisory team provides comprehensive market analysis, ROI projections, and portfolio diversification strategies. We offer exclusive access to pre-market investment opportunities and can connect you with wealth management professionals specializing in real estate assets. Our quarterly market reports provide valuable insights for both new and seasoned investors.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    What financing options are available? <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    We collaborate with premier financial institutions to offer tailored financing solutions for our clients. This includes competitive mortgage rates, international lending options, and private banking services. Our financial advisors can help structure the optimal solution based on your specific circumstances and investment goals. We also offer exclusive developer financing on select properties.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    How do you ensure privacy and security for high-profile clients? <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Discretion is paramount in our operations. We implement strict confidentiality protocols, including non-disclosure agreements with all staff, secure communication channels, and private transaction handling. For ultra-high-net-worth individuals, we offer anonymous property tours, off-market listings, and the ability to complete transactions through private legal structures that maintain your privacy.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Can you assist with property management after purchase? <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Our premium property management service ensures your investment is meticulously maintained. Services include regular property inspections, maintenance coordination, tenant management for investment properties, security monitoring, and concierge services. For seasonal residences, we offer specialized care programs to maintain your property while you're away.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subscription Section -->
+    <div class="subscription">
+        <div class="subscription-content">
+            <h2>Join Our Exclusive Network</h2>
+            <p>Subscribe to receive privileged access to our newest listings, market insights, and invitation-only property events</p>
+            <div class="subscription-form">
+                <input type="email" placeholder="Your Email Address">
+                <button type="submit"><i class="fas fa-arrow-right"></i> Subscribe</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>About Us</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Our Story</a></li>
+                    <li><a href="#">Our Team</a></li>
+                    <li><a href="#">Testimonials</a></li>
+                    <li><a href="#">Press & Media</a></li>
+                    <li><a href="#">Careers</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Luxury Properties</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Penthouses</a></li>
+                    <li><a href="#">Waterfront Estates</a></li>
+                    <li><a href="#">Historic Mansions</a></li>
+                    <li><a href="#">New Developments</a></li>
+                    <li><a href="#">International Properties</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Services</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Property Acquisition</a></li>
+                    <li><a href="#">Investment Advisory</a></li>
+                    <li><a href="#">Private Viewings</a></li>
+                    <li><a href="#">Interior Design</a></li>
+                    <li><a href="#">Property Management</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact Us</h3>
+                <div class="contact-info">
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Luxury Avenue, Suite 500<br>New York, NY 10001</p>
+                    <p><i class="fas fa-phone"></i> +1 (212) 555-1234</p>
+                    <p><i class="fas fa-envelope"></i> info@luxuryproperties.com</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-pinterest-p"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Luxury Properties. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/airtable@0.11.4/build/airtable.browser.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
