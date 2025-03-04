@@ -13,81 +13,174 @@ let bannerSettings = {
   logoText: "LUXURY PROPERTIES"
 }
 
-// Fetch and update banner content
-function fetchBannerSettings() {
-  base("Properties")
-    .select({
-      view: "Grid view",
-      maxRecords: 1,
-      fields: ["Name", "Description", "BannerImage"]
-    })
-    .firstPage((err, records) => {
-      if (err) {
-        console.error("Error fetching banner settings:", err)
-        return
+// Create site logo at the top left corner
+function createSiteLogo() {
+  // Check if logo already exists
+  if (document.querySelector(".site-logo")) {
+    return; // Logo already exists, don't create it again
+  }
+  
+  // Create the logo element
+  const logoElement = document.createElement("div");
+  logoElement.className = "site-logo";
+  logoElement.textContent = bannerSettings.logoText;
+  
+  // Style the logo
+  logoElement.style.position = "absolute";
+  logoElement.style.top = "2rem";
+  logoElement.style.left = "5rem";
+  logoElement.style.zIndex = "100";
+  logoElement.style.color = "#fff";
+  logoElement.style.fontSize = "2rem";
+  logoElement.style.fontWeight = "300";
+  logoElement.style.letterSpacing = "2px";
+  logoElement.style.textTransform = "uppercase";
+  logoElement.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+  logoElement.style.padding = "0.5rem 1.5rem";
+  logoElement.style.borderRadius = "4px";
+  logoElement.style.cursor = "pointer";
+  
+  // Add click event to scroll to top
+  logoElement.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  
+  // Add the logo to the body, at the beginning
+  document.body.insertBefore(logoElement, document.body.firstChild);
+  
+  // Add media query styles for responsiveness
+  const style = document.createElement("style");
+  style.textContent = `
+    @media screen and (max-width: 768px) {
+      .site-logo {
+        left: 2rem !important;
+        font-size: 1.8rem !important;
       }
-      if (records && records[0]) {
-        updateBannerContent(records[0])
+    }
+    
+    @media screen and (max-width: 576px) {
+      .site-logo {
+        left: 1rem !important;
+        font-size: 1.6rem !important;
+        padding: 0.4rem 1rem !important;
       }
-    })
+    }
+  `;
+  document.head.appendChild(style);
 }
 
-function updateBannerContent(record) {
-  const title = record.get("Name") || bannerSettings.title
-  const description = record.get("Description") || bannerSettings.subtitle
-  const bannerImage = record.get("BannerImage")?.[0]?.url || bannerSettings.image
+// Fetch and update banner content - only using SiteSettings or default values
+function fetchBannerSettings() {
+  // Check if SiteSettings table exists and try to get banner settings from it
+  try {
+    base("SiteSettings")
+      .select({
+        view: "Grid view",
+        maxRecords: 1,
+        fields: ["BannerTitle", "BannerSubtitle", "BannerImage"]
+      })
+      .firstPage((err, records) => {
+        if (err || !records || records.length === 0) {
+          console.log("No dedicated banner settings found, using default values")
+          // If no dedicated settings table or error, use default settings
+          useDefaultBannerSettings()
+          return
+        }
+        
+        // We have settings from the SiteSettings table
+        const settingsRecord = records[0]
+        updateBannerFromSettings(settingsRecord)
+      })
+  } catch (error) {
+    // If SiteSettings table doesn't exist or any other error occurs
+    console.log("Error accessing SiteSettings table, using default values:", error)
+    useDefaultBannerSettings()
+  }
+}
 
-  document.querySelector(".banner-content h1").textContent = title
-  document.querySelector(".banner-content p").textContent = description
-  
-  // Update banner background if available
+// Use default banner settings from the settings object
+function useDefaultBannerSettings() {
   const banner = document.querySelector(".banner")
   if (banner) {
-    // Use a fixed, high-quality image if no Airtable image is available
-    const imageUrl = record.get("BannerImage")?.[0]?.url || bannerSettings.image
-    
-    // Set background image with appropriate overlay
-    banner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('${imageUrl}')`
-    
-    // Ensure proper background sizing and positioning
+    banner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('${bannerSettings.image}')`
     banner.style.backgroundSize = "cover"
     banner.style.backgroundPosition = "center"
   }
   
-  // Check if logo already exists
-  let logoElement = document.querySelector(".banner-logo")
-  if (!logoElement) {
-    // Create logo element if it doesn't exist
-    logoElement = document.createElement("div")
-    logoElement.className = "banner-logo"
-    logoElement.textContent = bannerSettings.logoText
+  // Set default text content
+  const heading = document.querySelector(".banner-content h1")
+  if (heading) {
+    heading.textContent = bannerSettings.title
     
-    // Style the logo
-    logoElement.style.color = "#fff"
-    logoElement.style.fontSize = "2.4rem"
-    logoElement.style.fontWeight = "300"
-    logoElement.style.letterSpacing = "2px"
-    logoElement.style.marginBottom = "2.5rem"
-    logoElement.style.textTransform = "uppercase"
-    logoElement.style.borderBottom = "2px solid #c9a55c"
-    logoElement.style.paddingBottom = "1rem"
-    logoElement.style.display = "inline-block"
-    
-    // Insert logo at the top of the banner content
-    const bannerContent = document.querySelector(".banner-content")
-    bannerContent.insertBefore(logoElement, bannerContent.firstChild)
+    // Add underline effect to the main heading
+    heading.style.paddingBottom = "1rem"
+    heading.style.borderBottom = "2px solid #c9a55c"
+    heading.style.display = "inline-block"
+    heading.style.marginBottom = "2.5rem"
   }
+  
+  document.querySelector(".banner-content p").textContent = bannerSettings.subtitle
+  
+  // Create site logo
+  createSiteLogo()
+}
+
+// New function to update banner using dedicated settings
+function updateBannerFromSettings(record) {
+  const title = record.get("BannerTitle") || bannerSettings.title
+  const subtitle = record.get("BannerSubtitle") || bannerSettings.subtitle
+  const bannerImage = record.get("BannerImage")?.[0]?.url || bannerSettings.image
+
+  // Set heading with underline effect
+  const heading = document.querySelector(".banner-content h1")
+  if (heading) {
+    heading.textContent = title
+    
+    // Add underline effect to the main heading
+    heading.style.paddingBottom = "1rem"
+    heading.style.borderBottom = "2px solid #c9a55c"
+    heading.style.display = "inline-block"
+    heading.style.marginBottom = "2.5rem"
+  }
+  
+  document.querySelector(".banner-content p").textContent = subtitle
+  
+  // Update banner background
+  const banner = document.querySelector(".banner")
+  if (banner) {
+    banner.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('${bannerImage}')`
+    banner.style.backgroundSize = "cover"
+    banner.style.backgroundPosition = "center"
+  }
+  
+  // Create site logo
+  createSiteLogo()
+}
+
+// Remove the old addLogoToBanner function since we're not using it anymore
+// Separate function to add logo to banner
+function addLogoToBanner() {
+  // This function is deprecated and kept for backward compatibility only
+  console.log("Using the new createSiteLogo function instead")
+  createSiteLogo()
 }
 
 // Fetch listings from Airtable
 function fetchListings() {
+  // Fetch all properties but filter out any that don't have required fields
   base("Properties")
     .select({
-      view: "Grid view",
+      view: "Grid view"
     })
     .eachPage(
       function page(records, fetchNextPage) {
         records.forEach((record) => {
+          // Skip records that don't have a name or required fields
+          if (!record.get("Name") || !record.get("Price")) {
+            console.log("Skipping incomplete listing record:", record.id)
+            return
+          }
+          
           const listing = {
             id: record.id,
             name: record.get("Name"),
@@ -118,7 +211,7 @@ function fetchListings() {
         
         // If no listings were found
         if (!document.querySelector(".listing-card")) {
-          document.getElementById("listings").innerHTML = "<p>No listings found.</p>"
+          document.getElementById("listings").innerHTML = "<p>No listings found. Please add properties to your Airtable database.</p>"
         }
         
         // Set up event listeners after listings are loaded
@@ -502,6 +595,9 @@ function processVideoUrl(url) {
 
 // Add event listeners to filter inputs
 document.addEventListener("DOMContentLoaded", function() {
+  // Create site logo
+  createSiteLogo();
+  
   // Filter event listeners
   const filterElements = [
     { id: "name", event: "input" },
