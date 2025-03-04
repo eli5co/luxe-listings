@@ -274,12 +274,12 @@ function renderListing(listing) {
   listingsContainer.appendChild(listingCard)
 }
 
-// Open enhanced modal with listing details
+// Open enhanced modal with listing details - UPDATED WITH IMPROVED MOBILE RESPONSIVENESS
 function openModal(listing) {
   const modal = document.getElementById("modal")
   const modalDetails = document.getElementById("modal-details")
 
-  // Create enhanced modal content
+  // Create enhanced modal content with improved responsive layout
   modalDetails.innerHTML = `
     <div class="modal-gallery">
       <div class="main-image-container">
@@ -300,25 +300,26 @@ function openModal(listing) {
       <i class="fas fa-map-marker-alt"></i> ${listing.location || "Luxury Location"}
     </div>
     
+    <!-- Improved responsive features grid -->
     <div class="modal-features">
       <div class="modal-feature">
-        <span class="feature-label">Area</span>
+        <span class="feature-label"><i class="fas fa-ruler-combined"></i> Area</span>
         <span class="feature-value">${listing.meters || "N/A"} m² / ${listing.varas || "N/A"} v²</span>
       </div>
       <div class="modal-feature">
-        <span class="feature-label">Bedrooms</span>
+        <span class="feature-label"><i class="fas fa-bed"></i> Bedrooms</span>
         <span class="feature-value">${listing.bedrooms || "N/A"}</span>
       </div>
       <div class="modal-feature">
-        <span class="feature-label">Bathrooms</span>
+        <span class="feature-label"><i class="fas fa-bath"></i> Bathrooms</span>
         <span class="feature-value">${listing.bathrooms || "N/A"}</span>
       </div>
       <div class="modal-feature">
-        <span class="feature-label">Parking</span>
+        <span class="feature-label"><i class="fas fa-car"></i> Parking</span>
         <span class="feature-value">${listing.parking || "N/A"}</span>
       </div>
       <div class="modal-feature">
-        <span class="feature-label">Completion</span>
+        <span class="feature-label"><i class="fas fa-calendar-alt"></i> Completion</span>
         <span class="feature-value">${listing.completionDate || "Ready"}</span>
       </div>
     </div>
@@ -347,6 +348,51 @@ function openModal(listing) {
       <button class="action-button contact-btn"><i class="fas fa-phone"></i> Contact Agent</button>
     </div>
   `
+  
+  // Add styles to improve mobile responsiveness
+  const style = document.createElement('style')
+  style.textContent = `
+    /* Enhanced mobile responsiveness for modal features */
+    @media screen and (max-width: 768px) {
+      .modal-features {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 1.5rem 1rem !important;
+        padding: 1.5rem !important;
+      }
+      
+      .modal-feature .feature-label {
+        font-size: 1.2rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+      }
+      
+      .modal-feature .feature-value {
+        font-size: 1.4rem !important;
+      }
+    }
+    
+    @media screen and (max-width: 576px) {
+      .modal-features {
+        grid-template-columns: 1fr !important;
+        text-align: center !important;
+      }
+      
+      .modal-feature {
+        border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+        padding-bottom: 1rem !important;
+      }
+      
+      .modal-feature:last-child {
+        border-bottom: none !important;
+      }
+      
+      .modal-feature .feature-label {
+        justify-content: center !important;
+      }
+    }
+  `
+  document.head.appendChild(style)
   
   // Add event listeners to the buttons
   setTimeout(() => {
