@@ -13,6 +13,113 @@ let bannerSettings = {
   logoText: "LUXURY PROPERTIES"
 }
 
+// Function to convert a string to URL-friendly slug
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-')         // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')     // Remove all non-word chars
+    .replace(/\-\-+/g, '-')       // Replace multiple - with single -
+    .replace(/^-+/, '')           // Trim - from start of text
+    .replace(/-+$/, '');          // Trim - from end of text
+}
+
+// URL routing functionality
+function initializeRouting() {
+  // Extract property ID and slug from URL path
+  const pathSegments = window.location.pathname.split('/').filter(segment => segment);
+  
+  // Check if we have a property segment
+  if (pathSegments.length > 0 && pathSegments[0] === 'property') {
+    // Property path structure: /property/[property-title-slug]-[id]
+    if (pathSegments.length > 1) {
+      const propertyPath = pathSegments[1];
+      const propertyIdMatch = propertyPath.match(/-([a-zA-Z0-9]+)$/);
+      
+      if (propertyIdMatch && propertyIdMatch[1]) {
+        const propertyId = propertyIdMatch[1];
+        // If there's a property ID in the URL, fetch and display that property
+        loadSingleProperty(propertyId);
+        return;
+      }
+    }
+  }
+  
+  // If no property in URL or invalid format, just load all listings
+  fetchListings();
+  
+  // Listen for back/forward navigation
+  window.addEventListener('popstate', function(event) {
+    if (event.state && event.state.propertyId) {
+      // Load the property from the browser history state
+      loadSingleProperty(event.state.propertyId, false);
+    } else {
+      // If no property in state, we're back to the main listing page
+      const modal = document.getElementById("modal");
+      if (modal && modal.style.display === "block") {
+        modal.style.display = "none";
+      }
+      
+      // Make sure listings are loaded
+      if (!document.querySelector(".listing-card")) {
+        fetchListings();
+      }
+    }
+  });
+}
+
+// Load a single property by ID
+function loadSingleProperty(propertyId, updateHistory = true) {
+  // Show loading indicator in the modal
+  const modal = document.getElementById("modal");
+  const modalDetails = document.getElementById("modal-details");
+  
+  if (!modal.style.display || modal.style.display === "none") {
+    modal.style.display = "block";
+    if (modalDetails) {
+      modalDetails.innerHTML = "<p class='loading-message' style='text-align:center;padding:50px;'>Loading property details...</p>";
+    }
+  }
+  
+  // Fetch the specific property from Airtable
+  base("Properties").find(propertyId, function(err, record) {
+    if (err) {
+      console.error("Error fetching property:", err);
+      if (modalDetails) {
+        modalDetails.innerHTML = "<p class='error-message' style='text-align:center;padding:50px;color:#c00'>Error loading property. The property may not exist or has been removed.</p>";
+      }
+      return;
+    }
+    
+    // Create listing object
+    const listing = {
+      id: record.id,
+      name: record.get("Name"),
+      price: record.get("Price"),
+      meters: record.get("Meters"),
+      varas: record.get("Varas"),
+      bedrooms: record.get("Bedrooms"),
+      bathrooms: record.get("Bathrooms"),
+      parking: record.get("Parking"),
+      completionDate: record.get("CompletionDate"),
+      description: record.get("Description"),
+      featuredImage: record.get("FeaturedImage")?.[0]?.url,
+      gallery: record.get("Gallery")?.map((img) => img.url) || [],
+      videoURL: record.get("VideoURL"),
+      location: record.get("Location") || "Luxury Location",
+    };
+    
+    // Open the modal with this property
+    openModal(listing, updateHistory);
+    
+    // Make sure listings are loaded in the background
+    if (!document.querySelector(".listing-card")) {
+      fetchListings();
+    }
+  });
+}
+
 // Create site logo at the top left corner
 function createSiteLogo() {
   // Check if logo already exists
@@ -42,7 +149,12 @@ function createSiteLogo() {
   
   // Add click event to scroll to top
   logoElement.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // If on a property page, go back to home
+    if (window.location.pathname.includes('/property/')) {
+      window.location.href = '/';
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   });
   
   // Add the logo to the body, at the beginning
@@ -112,7 +224,7 @@ function useDefaultBannerSettings() {
   if (heading) {
     heading.textContent = bannerSettings.title
     
-    // Add underline effect to the main heading
+    // Add underline effect to the main heading - using straight line
     heading.style.paddingBottom = "1rem"
     heading.style.borderBottom = "2px solid #c9a55c"
     heading.style.display = "inline-block"
@@ -136,7 +248,7 @@ function updateBannerFromSettings(record) {
   if (heading) {
     heading.textContent = title
     
-    // Add underline effect to the main heading
+    // Add underline effect to the main heading - using straight line
     heading.style.paddingBottom = "1rem"
     heading.style.borderBottom = "2px solid #c9a55c"
     heading.style.display = "inline-block"
@@ -157,8 +269,7 @@ function updateBannerFromSettings(record) {
   createSiteLogo()
 }
 
-// Remove the old addLogoToBanner function since we're not using it anymore
-// Separate function to add logo to banner
+// Legacy function kept for backward compatibility
 function addLogoToBanner() {
   // This function is deprecated and kept for backward compatibility only
   console.log("Using the new createSiteLogo function instead")
@@ -167,6 +278,13 @@ function addLogoToBanner() {
 
 // Fetch listings from Airtable
 function fetchListings() {
+  // Clear any existing listings
+  const listingsContainer = document.getElementById("listings");
+  if (listingsContainer) {
+    // Show loading message
+    listingsContainer.innerHTML = "<p style='text-align:center;padding:30px;'>Loading properties...</p>";
+  }
+  
   // Fetch all properties but filter out any that don't have required fields
   base("Properties")
     .select({
@@ -174,6 +292,11 @@ function fetchListings() {
     })
     .eachPage(
       function page(records, fetchNextPage) {
+        // Clear the loading message
+        if (listingsContainer) {
+          listingsContainer.innerHTML = "";
+        }
+        
         records.forEach((record) => {
           // Skip records that don't have a name or required fields
           if (!record.get("Name") || !record.get("Price")) {
@@ -223,6 +346,8 @@ function fetchListings() {
 // Render a single listing with enhanced design
 function renderListing(listing) {
   const listingsContainer = document.getElementById("listings")
+  if (!listingsContainer) return;
+  
   const listingCard = document.createElement("div")
   listingCard.className = "listing-card"
   listingCard.dataset.id = listing.id
@@ -232,7 +357,7 @@ function renderListing(listing) {
   listingCard.innerHTML = `
     <div class="property-image" style="background-image: url('${listing.featuredImage || "https://source.unsplash.com/800x600/?property"}');"></div>
     <div class="location-badge"><i class="fas fa-map-marker-alt"></i> ${listing.location || "Luxury Location"}</div>
-    <a href="javascript:void(0)" class="explore-button">
+    <a href="/property/${slugify(listing.name)}-${listing.id}" class="explore-button">
       Explore <i class="fas fa-arrow-right"></i>
     </a>
     <div class="property-overlay">
@@ -259,25 +384,69 @@ function renderListing(listing) {
     </div>
   `
   
-  // Add click event to open modal
-  listingCard.addEventListener("click", () => openModal(listing))
+  // Add click event to open modal with URL update
+  listingCard.addEventListener("click", (e) => {
+    // Prevent default behavior to handle navigation ourselves
+    e.preventDefault();
+    
+    // Create property URL
+    const propertyURL = `/property/${slugify(listing.name)}-${listing.id}`;
+    
+    // Update browser history and open modal
+    history.pushState(
+      { propertyId: listing.id }, 
+      `${listing.name} | Luxury Properties`, 
+      propertyURL
+    );
+    
+    openModal(listing, false);
+  });
   
   // Add special handling for explore button
-  const exploreBtn = listingCard.querySelector('.explore-button')
+  const exploreBtn = listingCard.querySelector('.explore-button');
   if (exploreBtn) {
     exploreBtn.addEventListener('click', (e) => {
-      e.stopPropagation() // Prevent the card click event
-      openModal(listing)
-    })
+      // Prevent default behavior to handle navigation ourselves
+      e.preventDefault();
+      e.stopPropagation(); // Prevent the card click event
+      
+      // Create property URL
+      const propertyURL = `/property/${slugify(listing.name)}-${listing.id}`;
+      
+      // Update browser history and open modal
+      history.pushState(
+        { propertyId: listing.id }, 
+        `${listing.name} | Luxury Properties`, 
+        propertyURL
+      );
+      
+      openModal(listing, false);
+    });
   }
   
   listingsContainer.appendChild(listingCard)
 }
 
 // Open enhanced modal with listing details - UPDATED WITH IMPROVED MOBILE RESPONSIVENESS
-function openModal(listing) {
+function openModal(listing, updateHistory = true) {
   const modal = document.getElementById("modal")
   const modalDetails = document.getElementById("modal-details")
+
+  // Update URL if needed
+  if (updateHistory) {
+    // Create a new URL with the property slug and ID
+    const propertyURL = `/property/${slugify(listing.name)}-${listing.id}`;
+    
+    // Update browser history to add this property
+    history.pushState(
+      { propertyId: listing.id }, 
+      `${listing.name} | Luxury Properties`, 
+      propertyURL
+    );
+  }
+  
+  // Update page title
+  document.title = `${listing.name} | Luxury Properties`;
 
   // Create enhanced modal content with improved responsive layout
   modalDetails.innerHTML = `
@@ -346,6 +515,7 @@ function openModal(listing) {
     <div class="modal-actions">
       <button class="action-button book-tour-btn"><i class="fas fa-calendar-alt"></i> Book a Tour</button>
       <button class="action-button contact-btn"><i class="fas fa-phone"></i> Contact Agent</button>
+      <button class="action-button share-btn"><i class="fas fa-share-alt"></i> Share Property</button>
     </div>
   `
   
@@ -370,6 +540,15 @@ function openModal(listing) {
       .modal-feature .feature-value {
         font-size: 1.4rem !important;
       }
+      
+      .modal-actions {
+        flex-wrap: wrap !important;
+      }
+      
+      .action-button {
+        flex: 1 0 45% !important;
+        margin-bottom: 1rem !important;
+      }
     }
     
     @media screen and (max-width: 576px) {
@@ -390,6 +569,10 @@ function openModal(listing) {
       .modal-feature .feature-label {
         justify-content: center !important;
       }
+      
+      .action-button {
+        flex: 1 0 100% !important;
+      }
     }
   `
   document.head.appendChild(style)
@@ -398,6 +581,7 @@ function openModal(listing) {
   setTimeout(() => {
     const bookTourBtn = modalDetails.querySelector('.book-tour-btn')
     const contactBtn = modalDetails.querySelector('.contact-btn')
+    const shareBtn = modalDetails.querySelector('.share-btn')
     
     if (bookTourBtn) {
       bookTourBtn.addEventListener('click', () => {
@@ -408,6 +592,28 @@ function openModal(listing) {
     if (contactBtn) {
       contactBtn.addEventListener('click', () => {
         alert('Contact agent functionality will be implemented here')
+      })
+    }
+    
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => {
+        // Get the current URL which now includes the property slug
+        const shareUrl = window.location.href;
+        
+        // Try to use the Web Share API if available
+        if (navigator.share) {
+          navigator.share({
+            title: `${listing.name} | Luxury Properties`,
+            text: `Check out this beautiful property: ${listing.name}`,
+            url: shareUrl
+          })
+          .catch(error => console.log('Error sharing:', error));
+        } else {
+          // Fallback - copy URL to clipboard
+          navigator.clipboard.writeText(shareUrl)
+            .then(() => alert('Property link copied to clipboard!'))
+            .catch(() => alert('URL: ' + shareUrl));
+        }
       })
     }
     
@@ -428,27 +634,43 @@ function openModal(listing) {
     }
   }, 100)
 
+  // Make sure modal is visible
   modal.style.display = "block"
+  
+  // Add close behavior to restore URL
+  const closeButton = modal.querySelector(".close-button")
+  if (closeButton) {
+    // Remove any existing event listeners to avoid duplicates
+    const newCloseBtn = closeButton.cloneNode(true);
+    closeButton.parentNode.replaceChild(newCloseBtn, closeButton);
+    
+    // Add new event listener
+    newCloseBtn.addEventListener("click", closePropertyModal);
+  }
+  
+  // Also handle closing by clicking outside
+  modal.onclick = function(event) {
+    if (event.target === modal) {
+      closePropertyModal();
+    }
+  };
+}
+
+// Function to close property modal and update URL
+function closePropertyModal() {
+  const modal = document.getElementById("modal");
+  modal.style.display = "none";
+  
+  // Reset URL and title when closing the modal
+  if (window.location.pathname.includes('/property/')) {
+    // Remove the property path from URL without triggering a page reload
+    history.pushState({}, 'Luxury Properties', '/');
+    document.title = 'Luxury Properties';
+  }
 }
 
 // Set up all event listeners
 function setupEventListeners() {
-  // Close modal button
-  const closeButton = document.querySelector(".close-button")
-  if (closeButton) {
-    closeButton.addEventListener("click", () => {
-      document.getElementById("modal").style.display = "none"
-    })
-  }
-
-  // Close modal when clicking outside
-  window.addEventListener("click", (event) => {
-    const modal = document.getElementById("modal")
-    if (event.target === modal) {
-      modal.style.display = "none"
-    }
-  })
-
   // FAQ toggles
   const faqQuestions = document.querySelectorAll('.faq-question')
   faqQuestions.forEach(question => {
@@ -476,22 +698,25 @@ function setupEventListeners() {
   // Filter toggle for mobile
   const filterContainer = document.querySelector('.filters')
   if (filterContainer && window.innerWidth < 768) {
-    const toggleHeader = document.createElement('div')
-    toggleHeader.className = 'filter-toggle'
-    toggleHeader.innerHTML = '<h3>Filter Properties <i class="fas fa-filter"></i></h3>'
-    filterContainer.prepend(toggleHeader)
-    
-    const filterContent = document.querySelector('.filter-container')
-    if (filterContent) {
-      filterContent.style.display = 'none'
+    // Check if toggle already exists to avoid duplicates
+    if (!document.querySelector('.filter-toggle')) {
+      const toggleHeader = document.createElement('div')
+      toggleHeader.className = 'filter-toggle'
+      toggleHeader.innerHTML = '<h3>Filter Properties <i class="fas fa-filter"></i></h3>'
+      filterContainer.prepend(toggleHeader)
       
-      toggleHeader.addEventListener('click', () => {
-        const isVisible = filterContent.style.display !== 'none'
-        filterContent.style.display = isVisible ? 'none' : 'flex'
-        toggleHeader.querySelector('i').className = isVisible 
-          ? 'fas fa-filter' 
-          : 'fas fa-times'
-      })
+      const filterContent = document.querySelector('.filter-container')
+      if (filterContent) {
+        filterContent.style.display = 'none'
+        
+        toggleHeader.addEventListener('click', () => {
+          const isVisible = filterContent.style.display !== 'none'
+          filterContent.style.display = isVisible ? 'none' : 'flex'
+          toggleHeader.querySelector('i').className = isVisible 
+            ? 'fas fa-filter' 
+            : 'fas fa-times'
+        })
+      }
     }
   }
 }
@@ -542,7 +767,7 @@ function filterListings() {
     const varasMatch = cardVaras >= varas
     const bedroomsMatch = !bedrooms || cardBedrooms >= Number.parseInt(bedrooms)
     const bathroomsMatch = !bathrooms || cardBathrooms >= Number.parseInt(bathrooms)
-    const parkingMatch = !parking || cardParking >= Number.parseInt(parking)
+   const parkingMatch = !parking || cardParking >= Number.parseInt(parking)
     const completionDateMatch = !completionDate || cardCompletionDate.includes(completionDate)
 
     let priceMatch = true
@@ -663,7 +888,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   })
   
-  // Initialize the page
-  fetchBannerSettings()
-  fetchListings()
+  // Initialize URL routing - this handles both SEO-friendly URLs and page initialization
+  initializeRouting()
 })
